@@ -27,5 +27,6 @@
     <orderEntry type="library" name="Maven: org.openjfx:javafx-base:mac:12.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.openjfx:javafx-fxml:12" level="project" />
     <orderEntry type="library" name="Maven: org.openjfx:javafx-fxml:mac:12" level="project" />
+    <orderEntry type="library" name="Maven: org.jetbrains:annotations:18.0.0" level="project" />
   </component>
 </module>

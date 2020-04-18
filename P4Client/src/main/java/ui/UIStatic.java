@@ -23,7 +23,6 @@ public class UIStatic {
 
     public static final Color GREEN = Color.GREEN;
 
-
     // Stage
     public static Stage primaryStage;
 
