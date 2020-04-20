@@ -1,6 +1,5 @@
 package server;
 
-import javafx.application.Platform;
 import javafx.util.Pair;
 import logic.*;
 
@@ -10,6 +9,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Server extends Thread {
     private int counter = 1;
@@ -68,25 +68,47 @@ public class Server extends Thread {
 
         private GameInfo gameInfo;
         private ArrayList<Pair<String, String>> categories_words;
-        private int letterGuessesLeft = 6;
-        private int wordGuessesLeft = 3;
+        private HashMap<String, ArrayList<String>> words_used;
+        private ArrayList<Character> remainingCharacters;
+        private int letterGuessesLeft;
+        private int wordGuessesLeft;
 
         ClientThread(Socket s, int id) {
             this.connection = s;
             this.id = id;
 
+            this.initPlayer();
+        }
+
+        private void initPlayer() {
+
+            this.letterGuessesLeft = 6;
+            this.wordGuessesLeft = 3;
+
             // Generating words
             this.categories_words = GameLogic.generateWords();
             System.out.println(this.categories_words);
+
+            // Saving the words that user was assigned with
+            this.words_used = new HashMap<>();
 
             // Creating initial game info
             this.gameInfo = new GameInfo();
             this.gameInfo.categories_numLetters = new ArrayList<>();
             for (Pair<String, String> pair: this.categories_words) {
                 this.gameInfo.categories_numLetters.add(new Pair<>(pair.getKey(), pair.getValue().length()));
+                this.words_used.put(pair.getKey(), new ArrayList<String>() {{ add(pair.getValue()); }});
             }
             this.gameInfo.letterGuessesLeft = this.letterGuessesLeft;
             this.gameInfo.wordGuessesLeft = this.wordGuessesLeft;
+        }
+
+        private void sendInitialGameInfo() {
+            try {
+                this.out.writeObject(this.gameInfo);
+            } catch (IOException e) {
+                System.out.println("Error sending initial game info");
+            }
         }
 
         public void run() {
@@ -100,27 +122,30 @@ public class Server extends Thread {
                 return;
             }
 
-            try {
-                this.out.writeObject(this.gameInfo);
-            } catch (IOException e) {
-                System.out.println("Error sending initial game info");
-                return;
-            }
+            this.sendInitialGameInfo();
 
             while(true) {
                 try {
                     Object info = in.readObject();
                     System.out.println("# " + this.id + " Received " + info);
 
-                    if (info instanceof LettersRequest) {
+                    if (info instanceof GameInfo) {
+                        // Request for a new game
+                        this.initPlayer();
+                        this.sendInitialGameInfo();
+                    }
+                    else if (info instanceof LettersRequest) {
                         LettersRequest lr = (LettersRequest) info;
 
                         for (Pair<String, String> pair : this.categories_words) {
                             if (pair.getKey().toUpperCase().equals(lr.category.toUpperCase())) {
-                                lr.letters = GameLogic.generateCharacters(pair.getValue().toUpperCase());
+                                Pair<ArrayList<Character>, ArrayList<Character>> char_remain = GameLogic.generateCharacters(pair.getValue().toUpperCase());
+                                lr.letters = char_remain.getKey();
+                                this.remainingCharacters = char_remain.getValue();
                             }
                         }
 
+                        this.letterGuessesLeft = 6;
                         this.out.writeObject(lr);
                     }
                     else if (info instanceof LetterCheck) {
@@ -143,6 +168,7 @@ public class Server extends Thread {
                         // Updating number of remaining tries
                         this.letterGuessesLeft -= 1;
                         lc.checksLeft = this.letterGuessesLeft;
+                        lc.newLetter = this.remainingCharacters.remove(0);
 
                         // Sending the result back
                         this.out.writeObject(lc);
@@ -166,6 +192,31 @@ public class Server extends Thread {
 
                         // Sending the result back
                         this.out.writeObject(wc);
+                    }
+                    else if (info instanceof RequestNewWord) {
+                        RequestNewWord rnw = (RequestNewWord) info;
+                        String newWord = GameLogic.getWordFromCategory(rnw.category, this.words_used.get(rnw.category));
+                        System.out.println("# " + this.id + " requested new word: " + newWord);
+
+                        // Updating categories_words
+                        Pair<String, String> pairToReplace = null;
+                        for(Pair<String, String> pair: this.categories_words) {
+                            if (pair.getKey().toUpperCase().equals(rnw.category.toUpperCase())) {
+                                pairToReplace = pair;
+                                break;
+                            }
+                        }
+                        assert pairToReplace != null;
+                        this.categories_words.add(new Pair<>(pairToReplace.getKey(), newWord));
+                        this.categories_words.remove(pairToReplace);
+
+                        // Adding word to the list of used words
+                        this.words_used.get(rnw.category).add(newWord);
+
+                        this.wordGuessesLeft = 3;
+
+                        rnw.numLetters = newWord.length();
+                        this.out.writeObject(rnw);
                     }
                     else {
                         System.out.println("Received unrecognized object");

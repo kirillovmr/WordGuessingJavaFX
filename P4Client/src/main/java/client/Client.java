@@ -2,10 +2,7 @@ package client;
 
 import javafx.application.Platform;
 import javafx.util.Pair;
-import logic.GameInfo;
-import logic.LetterCheck;
-import logic.LettersRequest;
-import logic.WordCheck;
+import logic.*;
 import ui.UIStatic;
 
 import java.io.IOException;
@@ -24,10 +21,12 @@ public class Client extends Thread {
     private boolean lettersRequested = false;
     private boolean letterCheckRequested = false;
     private boolean wordCheckRequested = false;
+    private boolean newWordRequested = false;
     private Consumer<GameInfo> gicb;
     private Consumer<ArrayList<Character>> lrcb;
-    private Consumer<Pair<ArrayList<Integer>, Integer>> lccb;
+    private Consumer<LetterCheck> lccb;
     private Consumer<Pair<Boolean, Integer>> wccb;
+    private Consumer<Integer> rnwcb;
 
     public Client() { }
 
@@ -73,12 +72,18 @@ public class Client extends Thread {
                 else if (data instanceof LetterCheck && this.letterCheckRequested) {
                     LetterCheck lc = (LetterCheck) data;
                     this.letterCheckRequested = false;
-                    Platform.runLater(() -> this.lccb.accept(new Pair<>(lc.indexes, lc.checksLeft)));
+//                    Platform.runLater(() -> this.lccb.accept(new Pair<>(lc.indexes, lc.checksLeft)));
+                    Platform.runLater(() -> this.lccb.accept(lc));
                 }
                 else if (data instanceof WordCheck && this.wordCheckRequested) {
                     WordCheck wc = (WordCheck) data;
                     this.wordCheckRequested = false;
                     Platform.runLater(() -> this.wccb.accept(new Pair<>(wc.correct, wc.checksLeft)));
+                }
+                else if (data instanceof RequestNewWord && this.newWordRequested) {
+                    RequestNewWord rnw = (RequestNewWord) data;
+                    this.newWordRequested = false;
+                    Platform.runLater(() -> this.rnwcb.accept(rnw.numLetters));
                 }
                 else {
                     System.out.println("Unrecognized data received");
@@ -94,6 +99,26 @@ public class Client extends Thread {
         Platform.runLater(() -> UIStatic.setScene(UIStatic.connectScene));
     }
 
+    public void requestNewGame(Consumer<GameInfo> cb) {
+        try {
+            this.out.writeObject(new GameInfo());
+            this.gameInfoRequested = true;
+            this.gicb = cb;
+        } catch (IOException e) {
+            System.out.println("Error sending requestNewWord");
+        }
+    }
+
+    public void requestNewWord(String category, Consumer<Integer> cb) {
+        try {
+            this.out.writeObject(new RequestNewWord(category));
+            this.newWordRequested = true;
+            this.rnwcb = cb;
+        } catch (IOException e) {
+            System.out.println("Error sending requestNewWord");
+        }
+    }
+
     public void requestLetters(String category, Consumer<ArrayList<Character>> cb) {
         try {
             this.out.writeObject(new LettersRequest(category));
@@ -104,7 +129,7 @@ public class Client extends Thread {
         }
     }
 
-    public void checkLetter(String category, char letter, Consumer<Pair<ArrayList<Integer>, Integer>> cb) {
+    public void checkLetter(String category, char letter, Consumer<LetterCheck> cb) {
         try {
             this.out.writeObject(new LetterCheck(category, letter));
             this.letterCheckRequested = true;

@@ -2,16 +2,9 @@ package ui;
 
 import javafx.geometry.Insets;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import scenes.CategoryScene;
-import scenes.ConnectScene;
-import scenes.GameScene;
-import scenes.MyScene;
+import scenes.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,28 +14,25 @@ public class UIStatic {
 
     public static final String gameTitle = "Word Guessing Game | Client";
 
-    public static final Color GREEN = Color.GREEN;
-
-    // Stage
+    // Application Stage
     public static Stage primaryStage;
 
     // Scenes
     public static ConnectScene connectScene;
     public static CategoryScene categoryScene;
     public static GameScene gameScene;
-
+    public static FinishScene finishScene;
     public static void initScenes() {
         connectScene = new ConnectScene();
         categoryScene = new CategoryScene();
         gameScene = new GameScene();
+        finishScene = new FinishScene();
     }
 
-
-
+    // Sets the given scene as active
     public static void setScene(MyScene scene) {
         primaryStage.setScene(scene.getScene());
     }
-
 
     // Returns a VBox with the given padding
     public static HBox spacer(double height, double width) {

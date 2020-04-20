@@ -8,6 +8,7 @@ public class LetterCheck implements Serializable {
     public char letter;
     public ArrayList<Integer> indexes;
     public int checksLeft;
+    public char newLetter;
 
     public LetterCheck(String category, char letter) {
         this.category = category;
@@ -21,6 +22,7 @@ public class LetterCheck implements Serializable {
                 ", letter=" + letter +
                 ", indexes=" + indexes +
                 ", checksLeft=" + checksLeft +
+                ", newLetter=" + newLetter +
                 '}';
     }
 }

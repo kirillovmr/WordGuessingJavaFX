@@ -1,5 +1,6 @@
 package ui;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -14,7 +15,10 @@ public class ExitButton extends ImageView {
         // Alignment in stack pane
         StackPane.setAlignment(this, Pos.TOP_RIGHT);
 
-        this.setOnMousePressed(onClink -> this.setImage(UIStatic.loadImage("cross_mark_pressed.png")));
+        Image original = this.getImage();
+        Image pressed = UIStatic.loadImage("cross_mark_pressed.png");
+
+        this.setOnMousePressed(onClink -> this.setImage(pressed));
         this.setOnMouseReleased(onClick -> System.exit(0));
     }
 
