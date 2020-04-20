@@ -3,6 +3,7 @@ package ui;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
@@ -30,6 +31,7 @@ public class TextField extends javafx.scene.control.TextField {
     }
 
     private void init(String prompt, double width, boolean delegateFocus) {
+        this.setAlignment(Pos.CENTER);
         this.setPromptText(prompt);
         this.setText(prompt);
 

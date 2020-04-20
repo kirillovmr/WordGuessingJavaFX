@@ -1,6 +1,7 @@
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import logic.Logic;
 import ui.UIStatic;
 
 public class WordGuessClient extends Application {
@@ -14,10 +15,13 @@ public class WordGuessClient extends Application {
 		UIStatic.primaryStage = primaryStage;
 		UIStatic.primaryStage.setTitle(UIStatic.gameTitle);
 
+		Logic.init();
+
 		UIStatic.initScenes();
-		UIStatic.primaryStage.setScene(UIStatic.gameScene.getScene());
+		UIStatic.primaryStage.setScene(UIStatic.connectScene.getScene());
 		UIStatic.primaryStage.initStyle(StageStyle.UNDECORATED);
 		UIStatic.primaryStage.show();
 	}
 
+	// TODO: Clients may guess at a maximum of three words per category
 }

@@ -10,6 +10,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import javafx.util.Pair;
+import logic.Logic;
 import ui.*;
 
 import java.util.ArrayList;
@@ -30,7 +32,7 @@ public class GameScene extends MyScene {
         // Top pane
         BorderPane top = new BorderPane();
         top.setLeft(UIStatic.spacer(0, 30));
-        top.setCenter(new Title(500));
+        top.setCenter(new Title(400));
         top.setRight(new StackPane(new ExitButton(30)));
 
         this.rootBox = new VBox(
@@ -41,7 +43,7 @@ public class GameScene extends MyScene {
 
         this.rootBox.setAlignment(Pos.TOP_CENTER);
         this.rootBox.setPadding(new Insets(10,10,10,10));
-        this.rootStack.getChildren().addAll(new Background(), rootBox);
+        this.rootStack.getChildren().addAll(new LayeredBackground(), rootBox);
     }
 
     public void initGameBox(int numLetters, ArrayList<Character> playerLetters) {
@@ -66,13 +68,11 @@ public class GameScene extends MyScene {
             this.translate(cell, 0, 30, 1, e -> {
                 this.translate(cell, (-middle + finalI + (even ? 0.5 : 0)) * 50, 0, 500, null);
             });
-
-            cell.setOnMouseClicked(e -> this.wrongGuess(cell, 'A'));
         }
 
         Text glText = new Text("Try to guess a letter:");
         this.gameBox.getChildren().add(glText);
-        this.translate(glText, 0, 100, 1, null);
+        this.translate(glText, 0, 80, 1, null);
 
         // Front declaration of guesses left text
         Text gLeftText = new Text("" + this.guessesLeft + " guesses left");
@@ -85,11 +85,21 @@ public class GameScene extends MyScene {
             this.gameBox.getChildren().add(cell);
 
             int finalI = i;
-            this.translate(cell, 0, 130, 1, e -> {
+            int finalI1 = i;
+            this.translate(cell, 0, 110, 1, e -> {
                 this.translate(cell, (-3 + finalI + 0.5) * 50, 0, 500, e2 -> {
                     cell.setOnMouseClicked(onClink -> {
                         if (this.guessesLeft > 0) {
-                            this.correctGuess(cell, new ArrayList<>(Arrays.asList(1, 3, 4)), '?');
+                            // TODO: ASK FOR NEW LETTER AS WELL
+                            Logic.client.checkLetter(Logic.currectCategory, playerLetters.get(finalI1), pair -> {
+                                if (pair.getKey().size() > 0) {
+                                    this.correctGuess(cell, pair.getKey(), '?');
+                                    // TODO: ADJUST GUESSES LEFT FROM THE SERVER RESPONSE
+                                }
+                                else {
+                                    this.wrongGuess(cell, '?');
+                                }
+                            });
                         }
                         this.fade(gLeftText, 1, 0, 200, e3 -> {
                             this.guessesLeft = this.guessesLeft > 0 ? this.guessesLeft - 1 : 0;
@@ -104,19 +114,20 @@ public class GameScene extends MyScene {
 //        Text gLeftText = new Text("" + this.guessesLeft + " guesses left");
         gLeftText.setStyle("-fx-font-size: 15");
         this.gameBox.getChildren().add(gLeftText);
-        this.translate(gLeftText, 0, 175, 1, null);
+        this.translate(gLeftText, 0, 155, 1, null);
 
-        Text gwText = new Text("Or guess the word:");
+        Text gwText = new Text("Or guess a word and press enter:");
         this.gameBox.getChildren().add(gwText);
-        this.translate(gwText, 0, 200, 1, null);
+        this.translate(gwText, 0, 180, 1, null);
 
         // Front declaration of press enter test
-        Text peText = new Text("and press ENTER");
+        // TODO: Adjust guesses left accordingly
+        Text peText = new Text("3 guesses left");
 
         // Creating input field
-        TextField inputWord = new TextField("Your word", 200, true);
+        TextField inputWord = new TextField("ANCIENT", 200, true);
         this.gameBox.getChildren().add(inputWord);
-        this.translate(inputWord, 0, 230, 1, null);
+        this.translate(inputWord, 0, 210, 1, null);
         inputWord.setOnEnter(value -> {
             // If player guessed the word correctly
             if (value.length() == 7) {
@@ -139,11 +150,49 @@ public class GameScene extends MyScene {
                             this.scale(cell, 0.3, duration, null);
                             this.translate(cell, cell.getTranslateX() * 0.7, 0, duration, null);
                         }
-
-                        // Showing win text
-
                     });
                 }
+
+                // Showing win text
+                Text winText = new Text("YOU GUESSED!");
+                winText.setVisible(false);
+                this.gameBox.getChildren().add(winText);
+                this.translate(winText, 0, 120, 1, null);
+
+                // TODO: Request serfor for categories, if less then 1 -> go to win screen
+
+                // Redirect text
+                int secondsToGo = 4;
+                Text redirText = new Text("Going to the category selection in " + (secondsToGo-1) + "..");
+                redirText.setVisible(false);
+                this.gameBox.getChildren().add(redirText);
+                this.translate(redirText, 0, 160, 1, null);
+
+                Timeline timeline = new Timeline(new KeyFrame(Duration.millis(1500), new EventHandler<ActionEvent>() {
+                    int i = secondsToGo;
+
+                    @Override
+                    public void handle(ActionEvent actionEvent) {
+                        if (i == secondsToGo) {
+                            winText.setVisible(true);
+                            redirText.setVisible(true);
+                        }
+                        else {
+                            fade(redirText, 1, 0, 300, e -> {
+                                redirText.setText("Going to the category selection in " + i + " ..");
+                                fade(redirText, 0, 1, 300, null);
+                            });
+                        }
+                        i -= 1;
+                    }
+                }));
+                timeline.setOnFinished(onFinish -> {
+                    // TODO: Request remaining categories from server
+                    UIStatic.setScene(UIStatic.categoryScene);
+                    UIStatic.categoryScene.createButtons(new ArrayList<>(Arrays.asList("Category 1", "Category 2")));
+                });
+                timeline.setCycleCount(secondsToGo);
+                timeline.play();
             }
             // If user guessed wrong
             else {
@@ -163,7 +212,7 @@ public class GameScene extends MyScene {
 //        Text peText = new Text("and press ENTER");
         peText.setStyle("-fx-font-size: 15");
         this.gameBox.getChildren().add(peText);
-        this.translate(peText, 0, 275, 1, null);
+        this.translate(peText, 0, 255, 1, null);
 
         // Deleting previous gameBox if needed
         if (this.rootBox.getChildren().get(this.rootBox.getChildren().size()-1).getClass().getName().equals("javafx.scene.layout.StackPane")) {

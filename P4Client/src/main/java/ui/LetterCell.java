@@ -15,14 +15,14 @@ public class LetterCell extends VBox {
 
     public LetterCell(char letter) {
         this.text = new Text("" + letter);
-
+        this.text.setStyle("-fx-fill: black");
         this.getChildren().add(this.text);
-
         this.makeDefault();
     }
 
     public LetterCell(LetterCell cell) {
         this.text = new Text(cell.text.getText());
+        this.text.setStyle(cell.text.getStyle());
         this.getChildren().add(this.text);
         this.setBackground(cell.getBackground());
     }
