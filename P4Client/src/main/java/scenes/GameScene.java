@@ -128,85 +128,88 @@ public class GameScene extends MyScene {
         TextField inputWord = new TextField("ANCIENT", 200, true);
         this.gameBox.getChildren().add(inputWord);
         this.translate(inputWord, 0, 210, 1, null);
-        inputWord.setOnEnter(value -> {
+        inputWord.setOnEnter(userInput -> {
             // If player guessed the word correctly
-            if (value.length() == 7) {
-                for(int i=0; i<value.length(); i++) {
-                    this.flip(this.serverGuessed.get(i), 200, value.charAt(i), e -> {
-                        // Creating a list of elements to remove
-                        ArrayList<Node> toRemove = new ArrayList<>(Arrays.asList(sgText, glText, gLeftText, gwText, peText, inputWord));
-                        toRemove.addAll(playerGuessed);
+            Logic.client.checkWord(Logic.currectCategory, userInput, pair -> {
+                boolean correct = pair.getKey();
+                if (correct) {
+                    for(int i=0; i<userInput.length(); i++) {
+                        this.flip(this.serverGuessed.get(i), 200, userInput.charAt(i), e -> {
+                            // Creating a list of elements to remove
+                            ArrayList<Node> toRemove = new ArrayList<>(Arrays.asList(sgText, glText, gLeftText, gwText, peText, inputWord));
+                            toRemove.addAll(playerGuessed);
 
-                        // Removing them from the scene
-                        for(Node node: toRemove) {
-                            this.fade(node, 1, 0, 100, onFinish -> {
-                                this.gameBox.getChildren().remove(node);
-                            });
-                        }
+                            // Removing them from the scene
+                            for(Node node: toRemove) {
+                                this.fade(node, 1, 0, 100, onFinish -> {
+                                    this.gameBox.getChildren().remove(node);
+                                });
+                            }
 
-                        // Scaling the result
-                        for(LetterCell cell: serverGuessed) {
-                            int duration = 300;
-                            this.scale(cell, 0.3, duration, null);
-                            this.translate(cell, cell.getTranslateX() * 0.7, 0, duration, null);
-                        }
-                    });
-                }
-
-                // Showing win text
-                Text winText = new Text("YOU GUESSED!");
-                winText.setVisible(false);
-                this.gameBox.getChildren().add(winText);
-                this.translate(winText, 0, 120, 1, null);
-
-                // TODO: Request serfor for categories, if less then 1 -> go to win screen
-
-                // Redirect text
-                int secondsToGo = 4;
-                Text redirText = new Text("Going to the category selection in " + (secondsToGo-1) + "..");
-                redirText.setVisible(false);
-                this.gameBox.getChildren().add(redirText);
-                this.translate(redirText, 0, 160, 1, null);
-
-                Timeline timeline = new Timeline(new KeyFrame(Duration.millis(1500), new EventHandler<ActionEvent>() {
-                    int i = secondsToGo;
-
-                    @Override
-                    public void handle(ActionEvent actionEvent) {
-                        if (i == secondsToGo) {
-                            winText.setVisible(true);
-                            redirText.setVisible(true);
-                        }
-                        else {
-                            fade(redirText, 1, 0, 300, e -> {
-                                redirText.setText("Going to the category selection in " + i + " ..");
-                                fade(redirText, 0, 1, 300, null);
-                            });
-                        }
-                        i -= 1;
+                            // Scaling the result
+                            for(LetterCell cell: serverGuessed) {
+                                int duration = 300;
+                                this.scale(cell, 0.3, duration, null);
+                                this.translate(cell, cell.getTranslateX() * 0.7, 0, duration, null);
+                            }
+                        });
                     }
-                }));
-                timeline.setOnFinished(onFinish -> {
-                    // TODO: Request remaining categories from server
-                    UIStatic.setScene(UIStatic.categoryScene);
-                    UIStatic.categoryScene.createButtons(new ArrayList<>(Arrays.asList("Category 1", "Category 2")));
-                });
-                timeline.setCycleCount(secondsToGo);
-                timeline.play();
-            }
-            // If user guessed wrong
-            else {
-                int duration = 30;
-                this.translate(inputWord, 15, 0, duration, e -> {
-                    this.translate(inputWord, -30, 0, duration*2, e2-> {
-                        this.translate(inputWord, 30, 0, duration*2, e3 -> {
-                            this.translate(inputWord, -30, 0, duration*2, e4 -> {
-                                this.translate(inputWord, 15, 0, duration, null);
+
+                    // Showing win text
+                    Text winText = new Text("YOU GUESSED!");
+                    winText.setVisible(false);
+                    this.gameBox.getChildren().add(winText);
+                    this.translate(winText, 0, 120, 1, null);
+
+                    // TODO: Request serfor for categories, if less then 1 -> go to win screen
+
+                    // Redirect text
+                    int secondsToGo = 4;
+                    Text redirText = new Text("Going to the category selection in " + (secondsToGo-1) + "..");
+                    redirText.setVisible(false);
+                    this.gameBox.getChildren().add(redirText);
+                    this.translate(redirText, 0, 160, 1, null);
+
+                    Timeline timeline = new Timeline(new KeyFrame(Duration.millis(1500), new EventHandler<ActionEvent>() {
+                        int i = secondsToGo;
+
+                        @Override
+                        public void handle(ActionEvent actionEvent) {
+                            if (i == secondsToGo) {
+                                winText.setVisible(true);
+                                redirText.setVisible(true);
+                            }
+                            else {
+                                fade(redirText, 1, 0, 300, e -> {
+                                    redirText.setText("Going to the category selection in " + i + " ..");
+                                    fade(redirText, 0, 1, 300, null);
+                                });
+                            }
+                            i -= 1;
+                        }
+                    }));
+                    timeline.setOnFinished(onFinish -> {
+                        // TODO: Request remaining categories from server
+                        UIStatic.setScene(UIStatic.categoryScene);
+                        UIStatic.categoryScene.createButtons(new ArrayList<>(Arrays.asList("Category 1", "Category 2")));
+                    });
+                    timeline.setCycleCount(secondsToGo);
+                    timeline.play();
+                }
+                // If user guessed wrong
+                else {
+                    int duration = 30;
+                    this.translate(inputWord, 15, 0, duration, e -> {
+                        this.translate(inputWord, -30, 0, duration*2, e2-> {
+                            this.translate(inputWord, 30, 0, duration*2, e3 -> {
+                                this.translate(inputWord, -30, 0, duration*2, e4 -> {
+                                    this.translate(inputWord, 15, 0, duration, null);
+                                });
                             });
                         });
                     });
-                });
-            }
+                }
+            });
         });
 
 //        Text peText = new Text("and press ENTER");

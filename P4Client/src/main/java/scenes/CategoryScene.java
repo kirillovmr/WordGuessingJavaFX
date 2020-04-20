@@ -57,8 +57,12 @@ public class CategoryScene extends MyScene {
                         numLetters = pair.getValue();
                     }
                 }
-                // TODO: Request letters from server
-                UIStatic.gameScene.initGameBox(numLetters, new ArrayList<>(Arrays.asList('A','B','C','D','E','F')));
+
+                // Requesting letters
+                int finalNumLetters = numLetters;
+                Logic.client.requestLetters(names.get(finalI), playerLetters -> {
+                    UIStatic.gameScene.initGameBox(finalNumLetters, playerLetters);
+                });
             });
             this.buttons.add(button);
             if (i > 0) {

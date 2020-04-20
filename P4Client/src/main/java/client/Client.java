@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.util.Pair;
 import logic.GameInfo;
 import logic.LetterCheck;
+import logic.LettersRequest;
 import logic.WordCheck;
 import ui.UIStatic;
 
@@ -20,9 +21,11 @@ public class Client extends Thread {
     private ObjectInputStream in;
 
     private boolean gameInfoRequested = true;
+    private boolean lettersRequested = false;
     private boolean letterCheckRequested = false;
     private boolean wordCheckRequested = false;
     private Consumer<GameInfo> gicb;
+    private Consumer<ArrayList<Character>> lrcb;
     private Consumer<Pair<ArrayList<Integer>, Integer>> lccb;
     private Consumer<Pair<Boolean, Integer>> wccb;
 
@@ -62,6 +65,11 @@ public class Client extends Thread {
                     GameInfo gi = (GameInfo) data;
                     Platform.runLater(() -> this.gicb.accept(gi));
                 }
+                else if (data instanceof LettersRequest && this.lettersRequested) {
+                    LettersRequest lr = (LettersRequest) data;
+                    this.lettersRequested = false;
+                    Platform.runLater(() -> this.lrcb.accept(lr.letters));
+                }
                 else if (data instanceof LetterCheck && this.letterCheckRequested) {
                     LetterCheck lc = (LetterCheck) data;
                     this.letterCheckRequested = false;
@@ -86,6 +94,16 @@ public class Client extends Thread {
         Platform.runLater(() -> UIStatic.setScene(UIStatic.connectScene));
     }
 
+    public void requestLetters(String category, Consumer<ArrayList<Character>> cb) {
+        try {
+            this.out.writeObject(new LettersRequest(category));
+            this.lettersRequested = true;
+            this.lrcb = cb;
+        } catch (IOException e) {
+            System.out.println("Error sending requestLetters");
+        }
+    }
+
     public void checkLetter(String category, char letter, Consumer<Pair<ArrayList<Integer>, Integer>> cb) {
         try {
             this.out.writeObject(new LetterCheck(category, letter));
@@ -96,13 +114,13 @@ public class Client extends Thread {
         }
     }
 
-    public void wordLetter(String category, String word, Consumer<Pair<Boolean, Integer>> cb) {
+    public void checkWord(String category, String word, Consumer<Pair<Boolean, Integer>> cb) {
         try {
             this.out.writeObject(new WordCheck(category, word));
             this.wordCheckRequested = true;
             this.wccb = cb;
         } catch (IOException e) {
-            System.out.println("Error sending checkLetter");
+            System.out.println("Error sending wordLetter");
         }
     }
 }

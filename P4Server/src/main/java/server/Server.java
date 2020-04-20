@@ -2,10 +2,7 @@ package server;
 
 import javafx.application.Platform;
 import javafx.util.Pair;
-import logic.GameInfo;
-import logic.GameLogic;
-import logic.LetterCheck;
-import logic.WordCheck;
+import logic.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -115,7 +112,18 @@ public class Server extends Thread {
                     Object info = in.readObject();
                     System.out.println("# " + this.id + " Received " + info);
 
-                    if (info instanceof LetterCheck) {
+                    if (info instanceof LettersRequest) {
+                        LettersRequest lr = (LettersRequest) info;
+
+                        for (Pair<String, String> pair : this.categories_words) {
+                            if (pair.getKey().toUpperCase().equals(lr.category.toUpperCase())) {
+                                lr.letters = GameLogic.generateCharacters(pair.getValue().toUpperCase());
+                            }
+                        }
+
+                        this.out.writeObject(lr);
+                    }
+                    else if (info instanceof LetterCheck) {
                         LetterCheck lc = (LetterCheck) info;
                         lc.indexes = new ArrayList<>();
 
