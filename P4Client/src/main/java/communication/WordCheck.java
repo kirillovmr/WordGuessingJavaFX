@@ -1,8 +1,9 @@
-package logic;
+package communication;
 
 import java.io.Serializable;
 
 public class WordCheck implements Serializable {
+
     public String category;
     public String word;
     public boolean correct;

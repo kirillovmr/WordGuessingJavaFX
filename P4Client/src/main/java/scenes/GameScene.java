@@ -3,13 +3,9 @@ package scenes;
 import javafx.animation.*;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import javafx.util.Pair;
 import logic.Logic;
@@ -18,7 +14,6 @@ import ui.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-
 public class GameScene extends MyScene {
 
     StackPane gameBox;
@@ -26,36 +21,34 @@ public class GameScene extends MyScene {
     ArrayList<LetterCell> playerGuessed;
 
     int letterGuessesLeft;
-    int wordGuessesLeft = 3;
+    int wordGuessesLeft;
 
     public GameScene() {
         super();
 
-        // Top pane
-        BorderPane top = new BorderPane();
-        top.setLeft(UIStatic.spacer(0, 30));
-        top.setCenter(new Title(400));
-        top.setRight(new StackPane(new ExitButton(30)));
-
-        this.rootBox = new VBox(
-                top,
-                UIStatic.spacer(10, 0)
+        this.rootBox.getChildren().addAll(
+            this.createTopPane(),
+            UIStatic.spacer(10, 0)
         );
-
-        this.rootBox.setAlignment(Pos.TOP_CENTER);
-        this.rootBox.setPadding(new Insets(10,10,10,10));
-        this.rootStack.getChildren().addAll(new LayeredBackground(), rootBox);
     }
 
     public void initGameBox(int numLetters, ArrayList<Character> playerLetters) {
         this.gameBox = new StackPane();
-        this.gameBox.setAlignment(Pos.TOP_CENTER);
 
         this.letterGuessesLeft = Logic.gameInfo.letterGuessesLeft;
         this.wordGuessesLeft = Logic.gameInfo.wordGuessesLeft;
-        
+
+        // Creating and aligning all Texts
         Text sgText = new Text("Server guessed:");
-        this.gameBox.getChildren().add(sgText);
+        Text glText = new Text("Try to guess a letter:");
+        Text gLeftText = new Text("" + this.letterGuessesLeft + " guesses left", "textSmall");
+        Text gwText = new Text("Or guess a word and press enter:");
+        Text wglText = new Text("3 guesses left", "textSmall");
+        this.translate(glText, 0, 80, 1, null);
+        this.translate(gLeftText, 0, 155, 1, null);
+        this.translate(gwText, 0, 180, 1, null);
+        this.translate(wglText, 0, 255, 1, null);
+        this.gameBox.getChildren().addAll(sgText, glText, gLeftText, gwText, wglText);
 
         // Creating and aligning server guessed letter cells
         this.serverGuessed = new ArrayList<>();
@@ -67,17 +60,8 @@ public class GameScene extends MyScene {
             this.gameBox.getChildren().add(cell);
 
             int finalI = i;
-            this.translate(cell, 0, 30, 1, e -> {
-                this.translate(cell, (-middle + finalI + (even ? 0.5 : 0)) * 50, 0, 500, null);
-            });
+            this.translate(cell, 0, 30, 1, e -> this.translate(cell, (-middle + finalI + (even ? 0.5 : 0)) * 50, 0, 500, null));
         }
-
-        Text glText = new Text("Try to guess a letter:");
-        this.gameBox.getChildren().add(glText);
-        this.translate(glText, 0, 80, 1, null);
-
-        // Front declaration of guesses left text
-        Text gLeftText = new Text("" + this.letterGuessesLeft + " guesses left");
 
         // Creating and aligning player guess letter cells
         this.playerGuessed = new ArrayList<>();
@@ -87,12 +71,11 @@ public class GameScene extends MyScene {
             this.gameBox.getChildren().add(cell);
 
             int finalI = i;
-            int finalI1 = i;
             this.translate(cell, 0, 110, 1, e -> {
                 this.translate(cell, (-3 + finalI + 0.5) * 50, 0, 500, e2 -> {
                     cell.setOnMouseClicked(onClink -> {
                         if (this.letterGuessesLeft > 0) {
-                            Logic.client.checkLetter(Logic.currectCategory, cell.text.getText().charAt(0), letterCheck -> {
+                            Logic.client.checkLetter(Logic.currentCategory, cell.text.getText().charAt(0), letterCheck -> {
                                 if (letterCheck.indexes.size() > 0) {
                                     this.correctGuess(cell, letterCheck.indexes, letterCheck.newLetter);
                                 }
@@ -111,40 +94,25 @@ public class GameScene extends MyScene {
             });
         }
 
-//        Text gLeftText = new Text("" + this.letterGuessesLeft + " guesses left");
-        gLeftText.setStyle("-fx-font-size: 15");
-        this.gameBox.getChildren().add(gLeftText);
-        this.translate(gLeftText, 0, 155, 1, null);
-
-        Text gwText = new Text("Or guess a word and press enter:");
-        this.gameBox.getChildren().add(gwText);
-        this.translate(gwText, 0, 180, 1, null);
-
-        // Front declaration of press enter test
-        // TODO: Adjust guesses left accordingly
-        Text wglText = new Text("3 guesses left");
-
         // Creating input field
         TextField inputWord = new TextField("", 200, true);
         this.gameBox.getChildren().add(inputWord);
         this.translate(inputWord, 0, 210, 1, null);
+
+        ArrayList<Node> toRemove = new ArrayList<>(Arrays.asList(sgText, glText, gLeftText, gwText, wglText, inputWord));
+        toRemove.addAll(playerGuessed);
+
         inputWord.setOnEnter(userInput -> {
             // If player guessed the word correctly
-            Logic.client.checkWord(Logic.currectCategory, userInput, pair -> {
+            Logic.client.checkWord(Logic.currentCategory, userInput, pair -> {
                 boolean correct = pair.getKey();
                 this.wordGuessesLeft -= 1;
                 if (correct) {
                     for(int i=0; i<userInput.length(); i++) {
                         this.flip(this.serverGuessed.get(i), 200, userInput.charAt(i), e -> {
-                            // Creating a list of elements to remove
-                            ArrayList<Node> toRemove = new ArrayList<>(Arrays.asList(sgText, glText, gLeftText, gwText, wglText, inputWord));
-                            toRemove.addAll(playerGuessed);
-
-                            // Removing them from the scene
+                            // Removing game elements from the scene
                             for(Node node: toRemove) {
-                                this.fade(node, 1, 0, 100, onFinish -> {
-                                    this.gameBox.getChildren().remove(node);
-                                });
+                                this.fade(node, 1, 0, 100, onFinish -> this.gameBox.getChildren().remove(node));
                             }
 
                             // Scaling the result
@@ -193,7 +161,7 @@ public class GameScene extends MyScene {
                         ArrayList<String> categories = new ArrayList<>();
                         Pair<String, Integer> pairToRemove = null;
                         for (Pair<String, Integer> cat_num: Logic.gameInfo.categories_numLetters) {
-                            if (cat_num.getKey().toUpperCase().equals(Logic.currectCategory.toUpperCase())) {
+                            if (cat_num.getKey().toUpperCase().equals(Logic.currentCategory.toUpperCase())) {
                                 pairToRemove = cat_num;
                             }
                             else {
@@ -217,11 +185,7 @@ public class GameScene extends MyScene {
                 else if (this.wordGuessesLeft <= 0) {
                     for(int i=0; i<numLetters; i++) {
                         this.flip(this.serverGuessed.get(i), 200, '?', e -> {
-                            // Creating a list of elements to remove
-                            ArrayList<Node> toRemove = new ArrayList<>(Arrays.asList(sgText, glText, gLeftText, gwText, wglText, inputWord));
-                            toRemove.addAll(playerGuessed);
-
-                            // Removing them from the scene
+                            // Removing game elements from the scene
                             for(Node node: toRemove) {
                                 this.fade(node, 1, 0, 100, onFinish -> {
                                     this.gameBox.getChildren().remove(node);
@@ -271,11 +235,11 @@ public class GameScene extends MyScene {
                     }));
                     timeline.setOnFinished(onFinish -> {
                         // Requesting a new word
-                        Logic.client.requestNewWord(Logic.currectCategory, newNumLetters -> {
+                        Logic.client.requestNewWord(Logic.currentCategory, newNumLetters -> {
                             ArrayList<String> categories = new ArrayList<>();
                             Pair<String, Integer> pairToRemove = null;
                             for (Pair<String, Integer> cat_num: Logic.gameInfo.categories_numLetters) {
-                                if (cat_num.getKey().toUpperCase().equals(Logic.currectCategory.toUpperCase())) {
+                                if (cat_num.getKey().toUpperCase().equals(Logic.currentCategory.toUpperCase())) {
                                     pairToRemove = cat_num;
                                 }
                                 categories.add(cat_num.getKey());
@@ -305,17 +269,12 @@ public class GameScene extends MyScene {
                     });
                 }
                 this.fade(wglText, 1, 0, 200, e3 -> {
-                    this.wordGuessesLeft = this.wordGuessesLeft > 0 ? this.wordGuessesLeft : 0;
+                    this.wordGuessesLeft = Math.max(this.wordGuessesLeft, 0);
                     wglText.setText("" + this.wordGuessesLeft + " guesses left");
                     this.fade(wglText, 0, 1, 200, null);
                 });
             });
         });
-
-//        Text wglText = new Text("and press ENTER");
-        wglText.setStyle("-fx-font-size: 15");
-        this.gameBox.getChildren().add(wglText);
-        this.translate(wglText, 0, 255, 1, null);
 
         // Deleting previous gameBox if needed
         if (this.rootBox.getChildren().get(this.rootBox.getChildren().size()-1).getClass().getName().equals("javafx.scene.layout.StackPane")) {

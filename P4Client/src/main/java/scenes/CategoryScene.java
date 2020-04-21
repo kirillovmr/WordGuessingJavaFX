@@ -1,43 +1,24 @@
 package scenes;
 
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
-import logic.GameInfo;
 import logic.Logic;
 import ui.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class CategoryScene extends MyScene {
-
-    ArrayList<Button> buttons;
 
     public CategoryScene() {
         super();
 
-        buttons = new ArrayList<>();
-
-        // Top pane
-        BorderPane top = new BorderPane();
-        top.setLeft(UIStatic.spacer(0, 30));
-        top.setCenter(new Title(400));
-        top.setRight(new StackPane(new ExitButton(30)));
-
-        this.rootBox = new VBox(
-                top,
-                UIStatic.spacer(20, 0),
-                new Text("Select a category:"),
-                UIStatic.spacer(20, 0)
-                // Buttons will be injected here
+        this.rootBox.getChildren().addAll(
+            this.createTopPane(),
+            UIStatic.spacer(20, 0),
+            new Text("Select a category:"),
+            UIStatic.spacer(20, 0)
         );
-        this.rootBox.setAlignment(Pos.TOP_CENTER);
-        this.rootBox.setPadding(new Insets(10,10,10,10));
-        this.rootStack.getChildren().addAll(new LayeredBackground(), rootBox);
     }
 
     public void createButtons(ArrayList<String> names) {
@@ -48,7 +29,7 @@ public class CategoryScene extends MyScene {
         for(int i=0; i<names.size(); i++) {
             int finalI = i;
             Button button = new Button(names.get(i), 200, e -> {
-                Logic.currectCategory = names.get(finalI);
+                Logic.currentCategory = names.get(finalI);
                 UIStatic.setScene(UIStatic.gameScene);
 
                 int numLetters = 1;
@@ -60,11 +41,8 @@ public class CategoryScene extends MyScene {
 
                 // Requesting letters
                 int finalNumLetters = numLetters;
-                Logic.client.requestLetters(names.get(finalI), playerLetters -> {
-                    UIStatic.gameScene.initGameBox(finalNumLetters, playerLetters);
-                });
+                Logic.client.requestLetters(names.get(finalI), playerLetters -> UIStatic.gameScene.initGameBox(finalNumLetters, playerLetters));
             });
-            this.buttons.add(button);
             if (i > 0) {
                 buttonsBox.getChildren().add(UIStatic.spacer(10, 0));
             }
@@ -79,5 +57,4 @@ public class CategoryScene extends MyScene {
         // Adding to scene
         this.rootBox.getChildren().add(buttonsBox);
     }
-
 }

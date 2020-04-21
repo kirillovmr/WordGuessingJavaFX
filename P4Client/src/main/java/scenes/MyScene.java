@@ -1,10 +1,14 @@
 package scenes;
 
-import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import ui.ExitButton;
+import ui.LayeredBackground;
+import ui.Title;
 import ui.UIStatic;
 
 public class MyScene {
@@ -20,10 +24,15 @@ public class MyScene {
     private double yOffset = 0;
 
     protected MyScene() {
-        this.rootStack = new StackPane();
+        this.rootStack = new StackPane(new LayeredBackground());
         this.scene = new Scene(this.rootStack, width, height);
 
         this.scene.getStylesheets().add("styles/Style.css");
+
+        this.rootBox = new VBox();
+        this.rootBox.getStyleClass().add("rootBox");
+        this.rootBox.setAlignment(Pos.TOP_CENTER);
+        this.rootStack.getChildren().add(rootBox);
 
         this.rootStack.setOnMousePressed(event -> {
             this.xOffset = event.getSceneX();
@@ -33,6 +42,16 @@ public class MyScene {
             UIStatic.primaryStage.setX(event.getScreenX() - this.xOffset);
             UIStatic.primaryStage.setY(event.getScreenY() - this.yOffset);
         });
+    }
+
+    protected BorderPane createTopPane() {
+        BorderPane pane = new BorderPane();
+
+        pane.setLeft(UIStatic.spacer(0, 20));
+        pane.setCenter(new Title(400));
+        pane.setRight(new StackPane(new ExitButton(30)));
+
+        return pane;
     }
 
     public Scene getScene() {

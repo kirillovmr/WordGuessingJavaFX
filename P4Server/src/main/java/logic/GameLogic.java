@@ -5,6 +5,7 @@ import javafx.util.Pair;
 import java.util.*;
 
 public class GameLogic {
+
     private GameLogic() {}
 
     private static ArrayList<String> categories = new ArrayList<>(Arrays.asList("Animals", "Cities", "Food", "Flora", "Countries", "Home", "Car brands"));
@@ -82,11 +83,6 @@ public class GameLogic {
             list.add(c);
         }
 
-//        // Remove remaining word characters from the alphabet
-//        for(int i=0; i<wordCharacters.size(); i++) {
-//            alphabet.remove(wordCharacters.remove(0));
-//        }
-
         // Pick 3 characters from alphabet
         Collections.shuffle(alphabet);
         for(int i=0; i<3; i++) {
@@ -96,4 +92,5 @@ public class GameLogic {
         Collections.shuffle(list);
         return new Pair<>(list, alphabet);
     }
+
 }

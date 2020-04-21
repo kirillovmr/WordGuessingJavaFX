@@ -2,6 +2,7 @@ package ui;
 
 import javafx.geometry.Insets;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import scenes.*;
@@ -10,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public class UIStatic {
+
     private UIStatic() {}
 
     public static final String gameTitle = "Word Guessing Game | Client";
@@ -49,4 +51,15 @@ public class UIStatic {
             return null;
         }
     }
+
+    // Fits the image in the given width inside the given ImageView
+    public static void fitImage(ImageView view, Image image, double width) {
+        double _width = image.getWidth();
+        double _height = image.getHeight();
+        double height = _height * width / _width;
+
+        view.setFitWidth(width);
+        view.setFitHeight(height);
+    }
+
 }

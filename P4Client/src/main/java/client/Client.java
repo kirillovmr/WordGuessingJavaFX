@@ -1,8 +1,8 @@
 package client;
 
+import communication.*;
 import javafx.application.Platform;
 import javafx.util.Pair;
-import logic.*;
 import ui.UIStatic;
 
 import java.io.IOException;
@@ -27,8 +27,6 @@ public class Client extends Thread {
     private Consumer<LetterCheck> lccb;
     private Consumer<Pair<Boolean, Integer>> wccb;
     private Consumer<Integer> rnwcb;
-
-    public Client() { }
 
     // Connects to the given IP
     public boolean connect(String ip, int port, Consumer<GameInfo> cb) {
@@ -72,7 +70,6 @@ public class Client extends Thread {
                 else if (data instanceof LetterCheck && this.letterCheckRequested) {
                     LetterCheck lc = (LetterCheck) data;
                     this.letterCheckRequested = false;
-//                    Platform.runLater(() -> this.lccb.accept(new Pair<>(lc.indexes, lc.checksLeft)));
                     Platform.runLater(() -> this.lccb.accept(lc));
                 }
                 else if (data instanceof WordCheck && this.wordCheckRequested) {

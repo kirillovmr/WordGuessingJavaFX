@@ -1,8 +1,9 @@
-package logic;
+package communication;
 
 import java.io.Serializable;
 
 public class RequestNewWord implements Serializable {
+
     public String category;
     public int numLetters;
 
@@ -17,4 +18,5 @@ public class RequestNewWord implements Serializable {
                 ", numLetters=" + numLetters +
                 '}';
     }
+
 }

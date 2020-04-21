@@ -1,9 +1,10 @@
-package logic;
+package communication;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 
 public class LettersRequest implements Serializable {
+
     public String category;
     public ArrayList<Character> letters;
 

@@ -1,5 +1,6 @@
 package server;
 
+import communication.*;
 import javafx.util.Pair;
 import logic.*;
 
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Server extends Thread {
+
     private int counter = 1;
     private ArrayList<ClientThread> clients = new ArrayList<>();
     private ServerSocket mySocket;
@@ -76,12 +78,10 @@ public class Server extends Thread {
         ClientThread(Socket s, int id) {
             this.connection = s;
             this.id = id;
-
             this.initPlayer();
         }
 
         private void initPlayer() {
-
             this.letterGuessesLeft = 6;
             this.wordGuessesLeft = 3;
 
@@ -129,14 +129,15 @@ public class Server extends Thread {
                     Object info = in.readObject();
                     System.out.println("# " + this.id + " Received " + info);
 
+                    // Request for a new game
                     if (info instanceof GameInfo) {
-                        // Request for a new game
                         this.initPlayer();
                         this.sendInitialGameInfo();
                     }
+
+                    // Request for new portion of letters
                     else if (info instanceof LettersRequest) {
                         LettersRequest lr = (LettersRequest) info;
-
                         for (Pair<String, String> pair : this.categories_words) {
                             if (pair.getKey().toUpperCase().equals(lr.category.toUpperCase())) {
                                 Pair<ArrayList<Character>, ArrayList<Character>> char_remain = GameLogic.generateCharacters(pair.getValue().toUpperCase());
@@ -144,10 +145,11 @@ public class Server extends Thread {
                                 this.remainingCharacters = char_remain.getValue();
                             }
                         }
-
                         this.letterGuessesLeft = 6;
                         this.out.writeObject(lr);
                     }
+
+                    // Request to check is letter exists in the word
                     else if (info instanceof LetterCheck) {
                         LetterCheck lc = (LetterCheck) info;
                         lc.indexes = new ArrayList<>();
@@ -169,10 +171,10 @@ public class Server extends Thread {
                         this.letterGuessesLeft -= 1;
                         lc.checksLeft = this.letterGuessesLeft;
                         lc.newLetter = this.remainingCharacters.remove(0);
-
-                        // Sending the result back
                         this.out.writeObject(lc);
                     }
+
+                    // Request to check is the word correct
                     else if (info instanceof WordCheck) {
                         WordCheck wc = (WordCheck) info;
                         wc.correct = false;
@@ -189,10 +191,10 @@ public class Server extends Thread {
                         // Updating number of remaining tries
                         this.wordGuessesLeft -= 1;
                         wc.checksLeft = this.wordGuessesLeft;
-
-                        // Sending the result back
                         this.out.writeObject(wc);
                     }
+
+                    // Request for a new word in the given category
                     else if (info instanceof RequestNewWord) {
                         RequestNewWord rnw = (RequestNewWord) info;
                         String newWord = GameLogic.getWordFromCategory(rnw.category, this.words_used.get(rnw.category));
@@ -218,6 +220,8 @@ public class Server extends Thread {
                         rnw.numLetters = newWord.length();
                         this.out.writeObject(rnw);
                     }
+
+                    // Unrecognized request
                     else {
                         System.out.println("Received unrecognized object");
                     }
@@ -230,6 +234,7 @@ public class Server extends Thread {
             }
         }
     }
+
 }
 
 

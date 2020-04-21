@@ -23,5 +23,4 @@ public class WordGuessClient extends Application {
 		UIStatic.primaryStage.show();
 	}
 
-	// TODO: Clients may guess at a maximum of three words per category
 }

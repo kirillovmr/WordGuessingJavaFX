@@ -1,4 +1,4 @@
-package logic;
+package communication;
 
 import javafx.util.Pair;
 

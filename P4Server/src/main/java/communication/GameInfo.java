@@ -1,4 +1,4 @@
-package logic;
+package communication;
 
 import javafx.util.Pair;
 
@@ -19,4 +19,5 @@ public class GameInfo implements Serializable {
                 ", wordGuessesLeft=" + wordGuessesLeft +
                 '}';
     }
+
 }
