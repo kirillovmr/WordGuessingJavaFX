@@ -1,0 +1,64 @@
+/*
+    Styles are shared between all scenes
+*/
+
+HBox, VBox, StackPane {
+    -fx-alignment: top-center;
+}
+Text {
+    -fx-font-size: 20;
+    -fx-fill: white;
+}
+TextField {
+    -fx-font-size: 18;
+}
+Button {
+    -fx-font-size: 20;
+    -fx-text-fill: black;
+
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+    -fx-border-color: black;
+
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+    -fx-background-color: #f18a31;
+}
+LetterCell {
+    -fx-background-color: rgba(255, 255, 255, 0.75);
+    -fx-background-radius: 3;
+    -fx-background-insets: 0;
+
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-pref-width: 40;
+    -fx-pref-height: 40;
+    -fx-max-width: 40;
+    -fx-max-height: 40;
+    -fx-alignment: center;
+}
+LetterCell Text {
+    -fx-fill: black;
+}
+
+.rootStack {
+    -fx-background-color: #2a2c31;
+}
+.rootBox {
+    -fx-padding: 10 10 10 10;
+}
+.gameLog {
+    -fx-background-color: rgba(19, 21, 26, 0.8);
+}
+
+.letterCellRed {
+    -fx-background-color: rgba(220, 20, 60, 0.75);
+}
+
+.dropShadow {
+    -fx-effect: dropshadow(gaussian, black, 3, 0, 0, 0);
+}
+
+.textSmall {
+    -fx-font-size: 15
+}

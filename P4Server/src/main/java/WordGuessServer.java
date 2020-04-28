@@ -2,30 +2,28 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import logic.GameLogic;
 import server.Server;
+import ui.UIStatic;
 
 public class WordGuessServer extends Application {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		launch(args);
 	}
 
-	//feel free to remove the starter code from this method
 	@Override
-	public void start(Stage primaryStage) throws Exception {
-		// TODO Auto-generated method stub
-		primaryStage.setTitle("(server) Playing word guess!!!");
+	public void start(Stage primaryStage) {
+		UIStatic.primaryStage = primaryStage;
+		UIStatic.primaryStage.setTitle(UIStatic.gameTitle);
 
-		Server server = new Server();
-		if (server.startServer(4444)) {
-			server.start();
-		}
-		
-		Scene scene = new Scene(new HBox(),50,50);
-		primaryStage.setScene(scene);
-		primaryStage.show();
+		GameLogic.server = new Server();
+
+		UIStatic.initScenes();
+		UIStatic.primaryStage.setScene(UIStatic.connectScene.getScene());
+		UIStatic.primaryStage.initStyle(StageStyle.UNDECORATED);
+		UIStatic.primaryStage.show();
 	}
 
 }

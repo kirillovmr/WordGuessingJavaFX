@@ -24,6 +24,7 @@ public class MyScene {
 
     protected MyScene() {
         this.rootStack = new StackPane(new LayeredBackground());
+        this.rootStack.getStyleClass().add("rootStack");
         this.scene = new Scene(this.rootStack, width, height);
 
         this.scene.getStylesheets().add("styles/Style.css");

@@ -3,6 +3,7 @@ package client;
 import communication.*;
 import javafx.application.Platform;
 import javafx.util.Pair;
+import logic.Logic;
 import ui.UIStatic;
 
 import java.io.IOException;
@@ -88,6 +89,7 @@ public class Client extends Thread {
             }
             catch(Exception e) {
                 System.out.println("Client read exception");
+                Logic.init();
                 break;
             }
         }

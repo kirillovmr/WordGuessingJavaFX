@@ -3,7 +3,6 @@ package scenes;
 import javafx.animation.*;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
@@ -102,8 +101,9 @@ public class GameScene extends MyScene {
         ArrayList<Node> toRemove = new ArrayList<>(Arrays.asList(sgText, glText, gLeftText, gwText, wglText, inputWord));
         toRemove.addAll(playerGuessed);
 
-        inputWord.setOnEnter(userInput -> {
+        inputWord.setOnEnter(userInputLower -> {
             // If player guessed the word correctly
+            String userInput = userInputLower.toUpperCase();
             Logic.client.checkWord(Logic.currentCategory, userInput, pair -> {
                 boolean correct = pair.getKey();
                 this.wordGuessesLeft -= 1;

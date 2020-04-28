@@ -1,8 +1,10 @@
 package server;
 
 import communication.*;
+import javafx.application.Platform;
 import javafx.util.Pair;
 import logic.*;
+import ui.UIStatic;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -45,12 +47,16 @@ public class Server extends Thread {
         }
     }
 
+    public void log(String data) {
+        Platform.runLater(() -> UIStatic.gameLog.add(data));
+        System.out.println(data);
+    }
+
     public void run() {
         try {
             System.out.println("Server is waiting for a client!");
             while(true) {
                 ClientThread client = new ClientThread(mySocket.accept(), this.counter);
-                System.out.println("Client has connected to server #" + counter);
                 this.clients.add(client);
                 client.start();
                 this.counter += 1;
@@ -87,7 +93,7 @@ public class Server extends Thread {
 
             // Generating words
             this.categories_words = GameLogic.generateWords();
-            System.out.println(this.categories_words);
+            log("Player #" + this.id + " starts a new game. Categories given: " + this.categories_words + ".");
 
             // Saving the words that user was assigned with
             this.words_used = new HashMap<>();
@@ -138,6 +144,7 @@ public class Server extends Thread {
                     // Request for new portion of letters
                     else if (info instanceof LettersRequest) {
                         LettersRequest lr = (LettersRequest) info;
+                        log("Player #" + this.id + " selected category: " + lr.category + ".");
                         for (Pair<String, String> pair : this.categories_words) {
                             if (pair.getKey().toUpperCase().equals(lr.category.toUpperCase())) {
                                 Pair<ArrayList<Character>, ArrayList<Character>> char_remain = GameLogic.generateCharacters(pair.getValue().toUpperCase());
@@ -167,6 +174,8 @@ public class Server extends Thread {
                             }
                         }
 
+                        log("Player #" + this.id + " checks a letter '" + lc.letter + "' and it is " + (lc.indexes.size() == 0 ? "NOT " : "") + "present.");
+
                         // Updating number of remaining tries
                         this.letterGuessesLeft -= 1;
                         lc.checksLeft = this.letterGuessesLeft;
@@ -188,6 +197,8 @@ public class Server extends Thread {
                             }
                         }
 
+                        log("Player #" + this.id + " check a word '" + wc.word + "' and the guess is " + (wc.correct ? "correct!" : "wrong."));
+
                         // Updating number of remaining tries
                         this.wordGuessesLeft -= 1;
                         wc.checksLeft = this.wordGuessesLeft;
@@ -198,7 +209,7 @@ public class Server extends Thread {
                     else if (info instanceof RequestNewWord) {
                         RequestNewWord rnw = (RequestNewWord) info;
                         String newWord = GameLogic.getWordFromCategory(rnw.category, this.words_used.get(rnw.category));
-                        System.out.println("# " + this.id + " requested new word: " + newWord);
+                        log("Player #" + this.id + " requested a new word in category " + rnw.category + ": " + newWord);
 
                         // Updating categories_words
                         Pair<String, String> pairToReplace = null;
@@ -227,7 +238,7 @@ public class Server extends Thread {
                     }
                 }
                 catch(Exception e) {
-                    System.out.println("OOOOPPs...Something wrong with the socket from client: " + this.id + "....closing down!");
+                    log("Client socket #" + this.id + " was disconnected");
                     clients.remove(this);
                     break;
                 }

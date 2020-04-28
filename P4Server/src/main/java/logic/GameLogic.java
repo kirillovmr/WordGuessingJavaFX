@@ -1,12 +1,15 @@
 package logic;
 
 import javafx.util.Pair;
+import server.Server;
 
 import java.util.*;
 
 public class GameLogic {
 
     private GameLogic() {}
+
+    public static Server server;
 
     private static ArrayList<String> categories = new ArrayList<>(Arrays.asList("Animals", "Cities", "Food", "Flora", "Countries", "Home", "Car brands"));
     private static List<List<String>> words = new ArrayList<>();
